@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu IP</title>
+    <!-- Bootstrap 5 (CDN) para estilização rápida -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .ip-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 2rem;
+            padding: 2.5rem 2rem;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            transition: 0.3s ease;
+        }
+        .ip-card:hover {
+            transform: scale(1.01);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+        }
+        .ip-display {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 1rem 1.2rem;
+            border-radius: 1.2rem;
+            word-break: break-all;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            margin-top: 0.5rem;
+            margin-bottom: 1.8rem;
+            font-family: 'Courier New', monospace;
+        }
+        .btn-copy {
+            background: #6c63ff;
+            border: none;
+            font-weight: 600;
+            padding: 0.7rem 2rem;
+            border-radius: 3rem;
+            color: #fff;
+            font-size: 1.1rem;
+            transition: 0.2s;
+            box-shadow: 0 8px 18px rgba(108, 99, 255, 0.3);
+        }
+        .btn-copy:hover {
+            background: #5a52e0;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(108, 99, 255, 0.5);
+            color: #fff;
+        }
+        .btn-copy:active {
+            transform: scale(0.96);
+        }
+        .toast-custom {
+            background: #1e1e2f;
+            color: #fff;
+            border: 1px solid #6c63ff;
+            border-radius: 1rem;
+            font-weight: 500;
+        }
+        .info-text {
+            color: #b0b0d0;
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+        }
+        .badge-ip {
+            background: rgba(108, 99, 255, 0.2);
+            color: #c8c4ff;
+            padding: 0.4rem 1.2rem;
+            border-radius: 3rem;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+        .footer-note {
+            color: #6a6a8a;
+            font-size: 0.75rem;
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+        @media (max-width: 480px) {
+            .ip-card {
+                padding: 1.8rem 1rem;
+                margin: 1rem;
+            }
+            .ip-display {
+                font-size: 2rem;
+                padding: 0.8rem 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ip-card">
+        <!-- Ícone ilustrativo -->
+        <div style="font-size: 2.8rem; margin-bottom: 0.2rem;">🌐</div>
+        <h2 style="color: #f0f0ff; font-weight: 600; margin-bottom: 0.2rem;">Seu endereço IP</h2>
+        <div class="badge-ip">🔒 Público · IPv4</div>
+
+        <!-- IP será inserido aqui via JavaScript -->
+        <div class="ip-display" id="ipDisplay">Carregando...</div>
+
+        <!-- Botão para copiar -->
+        <button class="btn-copy" id="copyBtn">
+            📋 Copiar IP
+        </button>
+
+        <!-- Mensagem de feedback (toast) -->
+        <div id="copyToast" style="margin-top: 1.2rem; font-weight: 500; color: #a8d8a8; min-height: 28px; font-size: 0.95rem;"></div>
+
+        <div class="footer-note">
+            Seu IP é coletado apenas para exibição nesta página.
+        </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- SCRIPT PRINCIPAL         -->
+    <!-- ======================== -->
+    <script>
+        (function () {
+            "use strict";
+
+            const ipDisplay = document.getElementById('ipDisplay');
+            const copyBtn = document.getElementById('copyBtn');
+            const toast = document.getElementById('copyToast');
+
+            let currentIp = '';
+
+            // Função para obter o IP via API pública
+            async function fetchIP() {
+                try {
+                    // Usamos ipify.org (serviço confiável e gratuito)
+                    const response = await fetch('https://api.ipify.org?format=json');
+                    if (!response.ok) throw new Error('Falha ao obter IP');
+                    const data = await response.json();
+                    currentIp = data.ip || 'Não disponível';
+                    ipDisplay.textContent = currentIp;
+                } catch (error) {
+                    console.warn('Erro ao buscar IP:', error);
+                    ipDisplay.textContent = 'Erro ao carregar';
+                    // Fallback: tenta uma segunda API
+                    try {
+                        const fallbackRes = await fetch('https://api.my-ip.io/ip.json');
+                        if (fallbackRes.ok) {
+                            const fallbackData = await fallbackRes.json();
+                            currentIp = fallbackData.ip || 'Não disponível';
+                            ipDisplay.textContent = currentIp;
+                        }
+                    } catch (_) {
+                        ipDisplay.textContent = 'Não foi possível obter o IP';
+                    }
+                }
+            }
+
+            // Função para copiar o IP com feedback visual
+            function copyIP() {
+                if (!currentIp || currentIp === 'Carregando...' || currentIp === 'Não disponível' || currentIp === 'Erro ao carregar') {
+                    toast.textContent = '⚠️ Nenhum IP válido para copiar.';
+                    toast.style.color = '#ffb3b3';
+                    setTimeout(() => {
+                        toast.textContent = '';
+                    }, 2500);
+                    return;
+                }
+
+                // Usa a API Clipboard (moderna) com fallback para execCommand
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(currentIp)
+                        .then(() => {
+                            toast.textContent = '✅ IP copiado com sucesso!';
+                            toast.style.color = '#a8d8a8';
+                            setTimeout(() => {
+                                toast.textContent = '';
+                            }, 2500);
+                        })
+                        .catch(() => {
+                            fallbackCopy();
+                        });
+                } else {
+                    fallbackCopy();
+                }
+            }
+
+            // Fallback para navegadores mais antigos
+            function fallbackCopy() {
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = currentIp;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    textArea.style.top = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    const success = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    if (success) {
+                        toast.textContent = '✅ IP copiado com sucesso!';
+                        toast.style.color = '#a8d8a8';
+                    } else {
+                        toast.textContent = '❌ Falha ao copiar. Tente manualmente.';
+                        toast.style.color = '#ffb3b3';
+                    }
+                } catch (_) {
+                    toast.textContent = '❌ Erro ao copiar. Selecione e copie manualmente.';
+                    toast.style.color = '#ffb3b3';
+                }
+                setTimeout(() => {
+                    toast.textContent = '';
+                }, 3000);
+            }
+
+            // Evento do botão
+            copyBtn.addEventListener('click', copyIP);
+
+            // Carrega o IP ao iniciar
+            fetchIP();
+
+            // Opcional: recarregar a cada 60s (caso a rede mude)
+            // setInterval(fetchIP, 60000);
+
+        })();
+    </script>
+</body>
+</html>
